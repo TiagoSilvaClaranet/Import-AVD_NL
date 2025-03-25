@@ -1,0 +1,93 @@
+# Core variables
+environment    = "Development"
+nlcnumber      = "NLCXXXXXX"
+resourcesuffix = "001"
+
+# Network
+vnet1_address_space = ["10.252.xx.0/24"]
+vnet1_dns_servers   = ["168.63.129.16"] # = Azure DNS server
+#vnet1_dns_servers  = ["10.252.xx.20", "10.252.xx.21"] # Use this line when using own DNS servers (from Identity module)
+vnet1_gateway_subnet_prefix = ["10.252.xx.0/28"]
+
+# MGMT
+snet-mgmt_prefix  = ["10.252.xx.32/28"]
+MGMT_IP           = "10.252.xx.36"
+mgmt_vmName       = "MT01" # Default is MT01 for the Azure VM resource name, could be conflicting with existing mgmt server
+mgmt_computerName = "MT01" # Default is MT01 for NETBIOS computer name, could be conflicting with already existing mgmt server
+mgmt_imagesku     = "2022-Datacenter"
+
+
+# Bastion Host (v1.0.0)
+deploy_bastion        = false
+bastion_subnet_prefix = "10.252.xx.192/26"
+bastion_sku           = "Basic" # Possible options are Basic / Standard. Default is Basic
+
+# Optional Bastion Options
+bastion_copy_paste_enabled = true  # possible true / false. Default is true
+bastion_file_copy_enabled  = false # possible true / false Default is false. This is only usable with SKU Standard
+
+# Sharedservices
+# Governance
+enable_update_management        = true
+enable_change_tracking          = true
+enable_alerting                 = true # Set to true if customer has support contract
+alerting_deploy_dev_action_rule = true # Set this to true if you want to suppress action rules for an evironment
+keyvault_user_object_ids        = ["00000000-0000-0000-0000-000000000000"] # Object id('s) from users here
+keyvault_service_principal_ids  = ["00000000-0000-0000-0000-000000000000"] # Object id('s) from service principals (Enterprise applications) here
+
+# Shared Resources
+snet-shared_prefix = ["10.252.xx.64/27"]
+#trusted_spoke_vnet = ["10.252.xx.0/26", "10.252.xx.128/26"] # Add all spoke address ranges in CIDR notation seperated with a ,
+
+# PrintiX
+deploy_printix = false
+
+# Identity
+# Also change vnet1_dns_servers in the Network block to de DC's if you enable the identity module!!
+deploy_identity                 = false # Set to true to deploy an IdP
+deploy_adds                     = false  # Set to true if native ADDS is needed
+first_dc_computer_name          = "DC01"
+first_dc_vm_name                = "DC01"
+second_dc_computer_name         = "DC02"
+second_dc_vm_name               = "DC02"
+adds_deployment_scenario        = "Greenfield" # This can be set to Greenfield for a clean environment or Brownfield for an existing environment
+snet-identity_prefix            = ["10.252.xx.16/28"]
+adds_dc_ips                     = ["10.252.xx.20", "10.252.xx.21"] # For now we have to manually enter this information
+adds_domain_name                = "adds.domein.nl"                # Specify the name of the domain to be created
+#active_directory_netbios_name  = "adds" # Optional. Default is 'adds' 
+adds_image_sku                  = "2022-Datacenter"
+
+# When deploying to an existing domain (Brownfield) the following parameters needs to be uncommented and set
+#adds_deployment_scenario      = "Brownfield"
+#adds_ad_username                   = ""                 # Username of an AD account with domain admin priveleges
+#adds_ad_userpassword               = ""  
+
+
+# Shared Fileserver
+deploy_sharedfileserver    = false
+fileserver_resource_group  = "rg-sharedresources-weu-001" # Default is "rg-sharedresources-weu-001"
+fileserver_servername      = "FS01"                       # Default is 'FS01'
+fileserver_ip              = "10.252.xx.68"
+fileserver_data_disk1_size = "32"
+
+# Optional
+fileserver_skusize   = "Standard_B2ms"   # Default is 'Standard_B2ms'
+fileserver_image_sku = "2022-Datacenter" # Default is '2022-Datacenter'
+
+
+# WebDav
+deploy_webdav = false
+
+# Fortigate NVA (Single - Non HA)
+deploy_fortigate = false
+#fortigate_license_type            = "byol" # Can be boyl or payg, when boyl is selected valid .lic must fill in
+#fortigate_license_file            = "license.lic" # Put .lic file in same directory as tvars
+fortigate_license_type   = "payg" # Can be boyl or payg, when boyl is selected valid .lic must fill in
+fortigate_license_file   = null   # Put .lic file in same directory as tvars
+fortigate_address_prefix = "10.252.xx.0/24"
+fortigate_publiccidr     = "10.252.xx.96/28"
+fortigate_privatecidr    = "10.252.xx.112/28"
+fortigate_external_ip    = "10.252.xx.100"
+fortigate_internal_ip    = "10.252.xx.116"
+fortigate_version        = "7.0.12"
+fortigate_size           = "Standard_DS1_v2"
