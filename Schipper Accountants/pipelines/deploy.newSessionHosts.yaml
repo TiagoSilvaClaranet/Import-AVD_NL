@@ -1,0 +1,134 @@
+name: newSessionHosts_${{ parameters.ImageDefinitionName }}_${{ parameters.ImageDefinitionVersion }}_$(Build.BuildId)$(Rev:.r)
+
+trigger: none
+
+resources:
+  repositories:
+    - repository: claranet-it
+      type: git
+      name: 'Claranet IT/Claranet-IT'
+      ref: 'releases/v1.0.0'
+
+parameters:
+  - name: Environment
+    type: string
+    values:
+    - dev
+    - tst
+    - uat
+    - prd
+  - name: SNOWNumber
+    displayName: ServiceNow Ticket Number
+    type: string
+    default: 'None'
+  - name: ComputeGalleryName
+    displayName: Azure Compute Gallery Name
+    type: string
+  - name: ImageDefinitionName
+    displayName: Image Definition Name
+    type: string
+  - name: ImageDefinitionVersion
+    displayName: Image Definition Version
+    type: string
+  - name: HostCount
+    displayName: Number of hosts to deploy
+    type: string
+  - name: StartIndex
+    displayName: Index to start from
+    type: string
+  - name: vmImageName
+    type: string
+    default: 'windows-latest'
+  - name: ServiceConnectionName
+    type: string
+    default: 'nlc000883-schipper-prod-001'
+
+variables:
+  - group: GVG_MANUAL_INFRA_AS_CODE_01
+  - group: GVG_DYNAMIC_INFRA_AS_CODE_01
+
+stages:
+  - stage: cav
+    displayName: CaV | Collect Resources
+    jobs:
+      - job: A1
+        displayName: A1 | Collect Required Resources
+        pool:
+          vmImage: ${{ parameters.vmImageName }}
+
+        steps:
+          - checkout: self
+          - checkout: claranet-it
+
+          - task: CopyFiles@2
+            displayName: 'Task | Copy configuration files'
+            inputs:
+              SourceFolder: $(build.sourcesDirectory)/$(Build.Repository.Name)/configurations
+              Contents: '**'
+              TargetFolder: '$(System.ArtifactsDirectory)/configurations'
+              CleanTargetFolder: false
+
+          - task: CopyFiles@2
+            displayName: 'Task | Copy template files'
+            inputs:
+              SourceFolder: $(build.sourcesDirectory)/Claranet-IT/templates
+              Contents: '**'
+              TargetFolder: '$(System.ArtifactsDirectory)/resources/templates'
+              CleanTargetFolder: false
+          
+          - task: CopyFiles@2
+            displayName: 'Task | Copy script files'
+            inputs:
+              SourceFolder: $(build.sourcesDirectory)/Claranet-IT/scripts
+              Contents: '**'
+              TargetFolder: '$(System.ArtifactsDirectory)/resources/scripts'
+              CleanTargetFolder: false
+
+          - publish: '$(System.ArtifactsDirectory)/configurations'
+            displayName: Publishing CaV-1-configurations
+            artifact: CaV-1-configurations
+
+          - publish: '$(build.artifactstagingdirectory)/resources'
+            displayName: Publishing CaV-1-resources
+            artifact: CaV-1-resources
+  
+  - stage: prepareSessionHosts
+    displayName: Stage A | Deploy And Prepare Session Hosts
+    jobs:
+      - template: templates/pipeline/job.prepareSessionHosts.yaml@claranet-it
+        parameters:
+          jobPrefix: 'A1'
+          Environment: ${{ parameters.Environment }}
+          SNOWNumber: ${{ parameters.SNOWNumber }}
+          ImageDefinitionName: ${{ parameters.ImageDefinitionName }}
+          ImageDefinitionVersion: ${{ parameters.ImageDefinitionVersion }}
+          HostCount: ${{ parameters.HostCount }}
+          StartIndex: ${{ parameters.StartIndex }}
+          poolVmImage: ${{ parameters.vmImageName }}
+          ServiceConnectionName: ${{ parameters.ServiceConnectionName }}
+
+  - stage: processSessionHosts
+    displayName: Stage B | Process Session Hosts
+    dependsOn: prepareSessionHosts
+    jobs:
+      - template: templates/pipeline/job.processSessionHosts.yaml@claranet-it
+        parameters:
+          jobPrefix: 'B1'
+          Environment: ${{ parameters.Environment }}
+          poolVmImage: ${{ parameters.vmImageName }}
+          StartIndex: ${{ parameters.StartIndex }}
+          ServiceConnectionName: ${{ parameters.ServiceConnectionName }}
+  
+  - stage: removeSessionHosts
+    displayName: Stage C | Remove Current Session Hosts
+    dependsOn: processSessionHosts
+    jobs:
+      - template: templates/pipeline/job.removeSessionHosts.yaml@claranet-it
+        parameters:
+          jobPrefix: 'C1'
+          Environment: ${{ parameters.Environment }}
+          ComputeGalleryName: ${{ parameters.ComputeGalleryName }}
+          ImageDefinitionName: ${{ parameters.ImageDefinitionName }}
+          ImageDefinitionVersion: ${{ parameters.ImageDefinitionVersion }}
+          poolVmImage: ${{ parameters.vmImageName }}
+          ServiceConnectionName: ${{ parameters.ServiceConnectionName }}
