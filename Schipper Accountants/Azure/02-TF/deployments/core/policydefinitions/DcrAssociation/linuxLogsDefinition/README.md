@@ -1,0 +1,1 @@
+Customized policy definition based on 'Configure Windows Virtual Machines to be associated with a Data Collection Rule or a Data Collection Endpoint') for Linux servers so the DCR 'dcr-default-linuxvm-monitoring' is assigned properly
