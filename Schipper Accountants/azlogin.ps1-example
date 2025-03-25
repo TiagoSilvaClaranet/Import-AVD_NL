@@ -1,0 +1,8 @@
+# Login with CSP or Customer account with contributer permissions to one or more subscriptions
+az login --tenant "Tenant name"
+
+# Set subscription context
+az account set --subscription "Subscription name"
+
+# You can use the following AZ command te retrieve all available subscriptions
+# az account list --output table
