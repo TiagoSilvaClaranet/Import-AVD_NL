@@ -1,0 +1,9 @@
+#########################################################
+# Retrieve Shared Image properties
+# Not used yet!
+#########################################################
+data "azurerm_shared_image" "avdimage" {
+  name                = "NLC123456-AVD-GOLDENVM-01-v01"
+  gallery_name        = "sigavdprodweu65fv"
+  resource_group_name = "rg-spoke-customer-avd-prod-weu-001"
+}

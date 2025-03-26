@@ -1,3 +1,0 @@
-locals {
-  nlcnumber = var.nlcnumber
-}
